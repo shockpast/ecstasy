@@ -4,22 +4,22 @@ use reqwest::Error;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "camelCase")]
 pub struct Collection {
   pub id: i32,
   pub name: String,
   pub description: Option<String>,
   pub uploader: CollectionUploader,
-  dateUploaded: CollectionDate,
-  dateLastModified: CollectionDate,
-  pub beatmapCount: i16,
+  date_uploaded: CollectionDate,
+  date_last_modified: CollectionDate,
+  pub beatmap_count: i16,
   favourites: i16,
   comments: Vec<String>,
-  unsubmittedBeatmapCount: i16,
-  unknownChecksums: Vec<String>,
+  unsubmitted_beatmap_count: i16,
+  unknown_checksums: Vec<String>,
   modes: CollectionModes,
-  difficultySpread: HashMap<i32, f64>,
-  bpmSpread: HashMap<i32, f64>
+  difficulty_spread: HashMap<i32, f64>,
+  bpm_spread: HashMap<i32, f64>
 }
 
 #[derive(Deserialize)]

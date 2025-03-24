@@ -47,7 +47,7 @@ async fn main() {
 
     let local_collection_name = format_collection_name(&config.user.collection_name_format, &remote_collection_info);
 
-    info!("{} by {} (with {} beatmaps)", remote_collection_info.name.trim(), remote_collection_info.uploader.username, remote_collection_info.beatmapCount);
+    info!("{} by {} (with {} beatmaps)", remote_collection_info.name.trim(), remote_collection_info.uploader.username, remote_collection_info.beatmap_count);
 
     // parallel download
     let downloaded = Arc::new(Mutex::new(0));
@@ -85,7 +85,7 @@ async fn main() {
                     .find(|s| s.id == beatmap.beatmapset_id)
                     .unwrap();
 
-                info!("({}/{}) {} - {} [{}]", downloaded_lock, remote_collection_info.beatmapCount, beatmapset.artist, beatmapset.title, beatmap.version)
+                info!("({}/{}) {} - {} [{}]", downloaded_lock, remote_collection_info.beatmap_count, beatmapset.artist, beatmapset.title, beatmap.version)
             }
         })
         .await;
