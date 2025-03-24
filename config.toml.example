@@ -1,0 +1,17 @@
+[user]
+# available: catboy, nerinyan, okayu
+mirror_type = "catboy"
+# format in which collection name will be formatted
+# available templates: 
+#  {collection_id}, {collection_author}, {collection_title}
+collection_name_format = "{collection_author} - {collection_title}"
+
+[collector]
+# https://osucollector.com/collections/<COLLECTION_ID>/<COLLECTION_NAME>
+id = 0
+
+[osu]
+# e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\Songs
+songs_path = ""
+# it should be an absolute path, e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\collection.db
+collection_path = ""
