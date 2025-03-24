@@ -1,4 +1,4 @@
-<div style="text-align: center">
+<div align="center">
   <h3><a href="https://github.com/shockpast">~shockpast/</a>ecstasy</h3>
   <p>downloader for <a href="https://osucollector.com">osu!collector</a></p>
 </div>
@@ -8,6 +8,22 @@
 1. download the latest artifact or compile it yourself
 2. setup the `config.toml`
 3. launch `ecstasy.exe`
+
+## Building
+
+```sh
+git clone https://github.com/shockpast/ecstasy
+cd ecstasy
+cargo build --release --target=<desired_target>
+```
+
+target triplets:
+```sh
+x86_64-unknown-linux-gnu # linux 64-bit
+x86_64-pc-windows-msvc # windows 64-bit
+i686-unknown-linux-gnu # linux 32-bit
+i686-pc-windows-msvc # windows 32-bit
+```
 
 ## Tips
 
