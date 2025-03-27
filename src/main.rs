@@ -35,8 +35,7 @@ async fn main() {
         return;
     }
 
-    static CONFIG: LazyLock<Arc<config::Config>> =
-        std::sync::LazyLock::new(|| Arc::new(config::init()));
+    static CONFIG: LazyLock<config::Config> = std::sync::LazyLock::new(config::init);
     let mirror = Arc::new(CONFIG.user.mirror_type.get_mirror());
 
     let remote_collection_info = collector::get_info(CONFIG.collector.id)
