@@ -24,6 +24,7 @@ pub struct CollectionInfoBeatmap {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct CollectionBeatmaps {
+    pub beatmaps: Vec<Beatmap>,
     pub beatmapsets: Vec<Beatmapset>,
 }
 
@@ -62,7 +63,10 @@ pub enum BeatmapStatus {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct Beatmap {}
+pub struct Beatmap {
+    pub checksum: String,
+    pub version: String,
+}
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Beatmapset {

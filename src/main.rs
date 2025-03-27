@@ -9,8 +9,11 @@ use std::{
 use clap::Parser;
 use osu_db::CollectionList;
 use tokio::sync::{RwLock, Semaphore};
-use tracing::info;
-use utilities::collection::{create_collection, format_collection_name};
+use tracing::{error, info};
+use utilities::{
+    collection::{add_to_collection, create_collection, format_collection_name},
+    osu::find_beatmap,
+};
 
 mod collector;
 mod config;
@@ -19,10 +22,10 @@ mod utilities;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args {
+pub struct Args {
     /// Run a SpeedTest against all osu! mirrors
     #[arg(short)]
-    speedtest: bool,
+    pub speedtest: bool,
 }
 
 #[tokio::main]
@@ -74,6 +77,26 @@ async fn main() {
         )
         .await;
 
+        if find_beatmap(&CONFIG.osu.songs_path, beatmapset.id)
+            .await
+            .is_some()
+        {
+            for beatmap in &beatmapset.beatmaps {
+                add_to_collection(
+                    &collection_buffer,
+                    &local_collection_name,
+                    &beatmap.checksum,
+                )
+                .await;
+
+                downloaded
+                    .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_add(1))
+                    .expect("Overflow");
+            }
+
+            continue;
+        }
+
         let collection_buffer = Arc::clone(&collection_buffer);
         let local_collection_name = Arc::clone(&local_collection_name);
         let mirror = Arc::clone(&mirror);
@@ -84,52 +107,66 @@ async fn main() {
         tokio::task::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
 
-            if let Ok(contents) = mirror.get_file(beatmapset.id).await {
-                let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, beatmapset.id);
-                tokio::fs::write(file_path, contents).await.unwrap();
+            match mirror.get_file(beatmapset.id).await {
+                Ok(bytes) => {
+                    let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, beatmapset.id);
+                    tokio::fs::write(file_path, bytes).await.unwrap();
 
-                let beatmapset_entity = &remote_collection_beatmaps
-                    .beatmapsets
-                    .iter()
-                    .find(|s| s.id == beatmapset.id)
-                    .unwrap();
+                    let beatmapset_entity = &remote_collection_beatmaps
+                        .beatmapsets
+                        .iter()
+                        .find(|s| s.id == beatmapset.id)
+                        .unwrap();
 
-                for beatmap in beatmapset.beatmaps {
+                    for beatmap in beatmapset.beatmaps {
+                        add_to_collection(
+                            &collection_buffer,
+                            &local_collection_name,
+                            &beatmap.checksum,
+                        )
+                        .await;
+
+                        let beatmap_entity = remote_collection_beatmaps
+                            .beatmaps
+                            .iter()
+                            .find(|b| b.checksum == beatmap.checksum)
+                            .unwrap();
+
+                        info!(
+                            "({}/{}) {} - {} [{}]",
+                            downloaded.load(Ordering::SeqCst),
+                            remote_collection_info.beatmap_count,
+                            beatmapset_entity.artist,
+                            beatmapset_entity.title,
+                            beatmap_entity.version
+                        );
+                    }
+
                     collection_buffer
-                        .write()
+                        .read()
                         .await
-                        .collections
-                        .iter_mut()
-                        .find(|c| {
-                            c.name.as_ref().unwrap_or(&"".to_string()) == &*local_collection_name
-                        })
-                        .unwrap()
-                        .beatmap_hashes
-                        .push(Some(beatmap.checksum));
+                        .to_file(&CONFIG.osu.collection_path)
+                        .unwrap();
 
-                    info!(
-                        "({:?}/{}) {} - {}",
-                        downloaded,
-                        remote_collection_info.beatmap_count,
-                        beatmapset_entity.artist,
-                        beatmapset_entity.title
-                    );
+                    downloaded
+                        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_add(1))
+                        .expect("Overflow");
+
+                    drop(_permit);
                 }
-
-                collection_buffer
-                    .read()
-                    .await
-                    .to_file(&CONFIG.osu.collection_path)
-                    .unwrap();
-
-                downloaded
-                    .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_add(1))
-                    .expect("Overflow");
-
-                drop(_permit);
-            }
+                Err(error) => {
+                    error!("{} ({}): {}", mirror.get_name(), beatmapset.id, error);
+                }
+            };
         });
     }
 
-    std::thread::sleep(Duration::from_secs(999));
+    while downloaded.load(Ordering::SeqCst) < remote_collection_info.beatmap_count as i32 {
+        std::thread::sleep(Duration::from_secs(1));
+    }
+
+    info!(
+        "{} - {} is downloaded/merged, have fun!",
+        remote_collection_info.uploader.username, remote_collection_info.name
+    );
 }

@@ -1,0 +1,25 @@
+[user]
+# tip: run "ecstasy.exe -s" to measure download speeds from all available mirrors
+# available: catboy, osudirect, nerinyan, beatconnect
+mirror_type = "catboy"
+
+# format in which collection name will be formatted
+# available templates: {collection_id}, {collection_author}, {collection_title}
+collection_name_format = "{collection_author} - {collection_title}"
+
+# how much downloads will be running in background (parallelism)
+# it's recommended to run a speedtest, and then depending on speed set a fair amount of concurrency
+# e.g. 100Mb internet with ~30-40Mb from osu.direct should have 3..4 concurrent downloads, otherwise
+#      some downloads will have very low speed
+concurrent_downloads = 4
+
+[collector]
+# https://osucollector.com/collections/<COLLECTION_ID>/<COLLECTION_NAME>
+id = 0
+
+[osu]
+# e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\Songs
+songs_path = ""
+
+# it should be an absolute path, e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\collection.db
+collection_path = ""

@@ -6,7 +6,6 @@ use crate::mirrors::{
     Mirror, beatconnect::Beatconnect, catboy::Catboy, nerinyan::Nerinyan, osudirect::OsuDirect,
 };
 
-//
 pub enum MirrorType {
     Catboy(Catboy),
     OsuDirect(OsuDirect),
@@ -16,10 +15,10 @@ pub enum MirrorType {
 
 impl MirrorType {
     pub const ALL: [MirrorType; 4] = [
-        MirrorType::Catboy(Catboy {}),
-        MirrorType::OsuDirect(OsuDirect {}),
-        MirrorType::Nerinyan(Nerinyan {}),
-        MirrorType::Beatconnect(Beatconnect {}),
+        MirrorType::Catboy(Catboy),
+        MirrorType::OsuDirect(OsuDirect),
+        MirrorType::Nerinyan(Nerinyan),
+        MirrorType::Beatconnect(Beatconnect),
     ];
 
     #[allow(clippy::redundant_allocation)]
@@ -40,10 +39,10 @@ impl<'de> Deserialize<'de> for MirrorType {
     {
         let s: String = Deserialize::deserialize(deserializer)?;
         match s.as_str() {
-            "catboy" => Ok(MirrorType::Catboy(Catboy {})),
-            "osudirect" => Ok(MirrorType::OsuDirect(OsuDirect {})),
-            "nerinyan" => Ok(MirrorType::Nerinyan(Nerinyan {})),
-            "beatconnect" => Ok(MirrorType::Beatconnect(Beatconnect {})),
+            "catboy" => Ok(MirrorType::Catboy(Catboy)),
+            "osudirect" => Ok(MirrorType::OsuDirect(OsuDirect)),
+            "nerinyan" => Ok(MirrorType::Nerinyan(Nerinyan)),
+            "beatconnect" => Ok(MirrorType::Beatconnect(Beatconnect)),
             _ => Err(de::Error::unknown_variant(
                 &s,
                 &["catboy", "osudirect", "nerinyan", "beatconnect"],
@@ -80,6 +79,5 @@ pub struct Config {
 
 pub fn init() -> Config {
     let contents = fs::read_to_string("config.toml").expect("config.toml doesn't exist!");
-
     toml::from_str::<Config>(&contents).unwrap()
 }
