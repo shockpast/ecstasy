@@ -71,7 +71,7 @@ async fn main() {
     for beatmapset in remote_collection_info.beatmapsets {
         create_collection(
             Arc::clone(&collection_buffer),
-            &Arc::clone(&local_collection_name),
+            &local_collection_name,
             CONFIG.osu.collection_path.clone(),
         )
         .await;
