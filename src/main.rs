@@ -9,7 +9,10 @@ use std::{
 use clap::Parser;
 use futures::{StreamExt, stream};
 use osu_db::{CollectionList, Listing, collection};
-use tokio::sync::{Mutex, RwLock};
+use tokio::{
+    sync::{Mutex, RwLock, Semaphore},
+    task,
+};
 use tracing::{info, warn};
 use tracing_subscriber;
 use utilities::collection::{create_collection, format_collection_name};
@@ -69,6 +72,8 @@ async fn main() {
 
     // parallel download
     let downloaded: Arc<AtomicI32> = Arc::new(AtomicI32::new(0));
+    let tasks_count = Arc::new(AtomicI32::new(0));
+    let semaphore = Arc::new(Semaphore::new(CONFIG.user.concurrent_downloads));
 
     for beatmap in remote_collection_info.beatmapsets {
         create_collection(
@@ -82,24 +87,32 @@ async fn main() {
         let mirror = Arc::clone(&mirror);
         let downloaded = Arc::clone(&downloaded);
         let remote_collection_beatmaps = Arc::clone(&remote_collection_beatmaps);
-        let _ = tokio::task::spawn(async move {
+        let tasks_count = Arc::clone(&tasks_count);
+        let semaphore = Arc::clone(&semaphore);
+
+        tokio::task::spawn(async move {
+            let _permit = semaphore.acquire().await.unwrap();
+            println!("Downloading {}", beatmap.id);
+            tasks_count.fetch_add(1, Ordering::SeqCst);
+            println!("Task {:?} spawned", tasks_count);
             if let Ok(contents) = mirror.get_file(beatmap.id).await {
                 let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, beatmap.id);
                 tokio::fs::write(file_path, contents).await.unwrap();
 
                 for b in beatmap.beatmaps {
                     let mut collection = collection_buffer.write().await;
+                    println!("Locked");
 
                     let hashes = collection
                         .collections
                         .iter_mut()
                         .find(|c| {
-                            c.name.as_ref().unwrap_or(&"".to_string())
-                                == &*Arc::clone(&local_collection_name)
+                            c.name.as_ref().unwrap_or(&"".to_string()) == &*local_collection_name
                         })
                         .unwrap();
 
                     hashes.beatmap_hashes.push(Some(b.checksum));
+                    println!("Pushed");
                 }
 
                 collection_buffer
@@ -122,11 +135,12 @@ async fn main() {
                     remote_collection_info.beatmap_count,
                     beatmapset.artist,
                     beatmapset.title,
-                )
+                );
+                drop(_permit);
             }
-        })
-        .await;
+        });
     }
+    loop {}
     /*
         //
         stream::iter(remote_collection_beatmaps.beatmaps.iter())
