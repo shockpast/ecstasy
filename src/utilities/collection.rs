@@ -10,21 +10,21 @@ pub fn format_collection_name(fmt: &String, collection: &Collection) -> String {
         .replace("{collection_id}", collection.id.to_string().as_str())
 }
 
-pub async fn create_collection<'a>(
+pub async fn create_collection(
     collection_list: Arc<RwLock<osu_db::CollectionList>>,
     name: &str,
     path: String,
 ) {
-    collection_list
+    let collection_exists = collection_list
         .read()
         .await
         .collections
         .iter()
-        .for_each(|collection| {
-            if collection.name.as_ref().unwrap_or(&"".to_string()) == name {
-                return;
-            }
-        });
+        .any(|collection| collection.name.as_ref().unwrap_or(&"".to_string()) == name);
+    if collection_exists {
+        return;
+    }
+    
     collection_list
         .write()
         .await
