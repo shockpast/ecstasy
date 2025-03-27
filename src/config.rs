@@ -6,7 +6,7 @@ use crate::mirrors::{
     Mirror, beatconnect::Beatconnect, catboy::Catboy, nerinyan::Nerinyan, osudirect::OsuDirect,
 };
 
-///
+//
 pub enum MirrorType {
     Catboy(Catboy),
     OsuDirect(OsuDirect),
@@ -22,6 +22,7 @@ impl MirrorType {
         MirrorType::Beatconnect(Beatconnect {}),
     ];
 
+    #[allow(clippy::redundant_allocation)]
     pub fn get_mirror(&self) -> Box<&(dyn Mirror + Sync)> {
         match self {
             MirrorType::Catboy(m) => Box::new(m),
@@ -51,7 +52,7 @@ impl<'de> Deserialize<'de> for MirrorType {
     }
 }
 
-///
+//
 #[derive(Deserialize)]
 pub struct UserConfig {
     pub mirror_type: MirrorType,
@@ -68,7 +69,6 @@ pub struct CollectorConfig {
 pub struct OsuConfig {
     pub songs_path: String,
     pub collection_path: String,
-    pub osu_path: String,
 }
 
 #[derive(Deserialize)]

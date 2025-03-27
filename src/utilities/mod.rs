@@ -1,2 +1,2 @@
-pub mod speedtest;
 pub mod collection;
+pub mod speedtest;

@@ -9,22 +9,11 @@ pub async fn benchmark() {
     let client = reqwest::blocking::Client::new();
 
     // 10mb, 25mb, 50mb (general speedtest)
-    let mut general_speed: Vec<f64> = vec![];
-    general_speed.push(test_download(
-        &client,
-        10_000_000,
-        cfspeedtest::OutputFormat::None,
-    ));
-    general_speed.push(test_download(
-        &client,
-        25_000_000,
-        cfspeedtest::OutputFormat::None,
-    ));
-    general_speed.push(test_download(
-        &client,
-        50_000_000,
-        cfspeedtest::OutputFormat::None,
-    ));
+    let general_speed: Vec<f64> = vec![
+        test_download(&client, 10_000_000, cfspeedtest::OutputFormat::None),
+        test_download(&client, 25_000_000, cfspeedtest::OutputFormat::None),
+        test_download(&client, 50_000_000, cfspeedtest::OutputFormat::None),
+    ];
 
     // 40mb (mirror speedtest)
     let mut file_size: f64 = 0.0;
