@@ -70,7 +70,7 @@ async fn main() {
         create_collection(
             Arc::clone(&collection_buffer),
             &local_collection_name,
-            CONFIG.osu.collection_path.clone(),
+            &CONFIG.osu.collection_path,
         )
         .await;
 
@@ -119,7 +119,7 @@ async fn main() {
                 collection_buffer
                     .read()
                     .await
-                    .to_file(CONFIG.osu.collection_path.clone())
+                    .to_file(&CONFIG.osu.collection_path)
                     .unwrap();
 
                 downloaded

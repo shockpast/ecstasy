@@ -13,7 +13,7 @@ pub fn format_collection_name(fmt: &str, collection: &Collection) -> String {
 pub async fn create_collection(
     collection_list: Arc<RwLock<osu_db::CollectionList>>,
     name: &str,
-    path: String,
+    path: &String,
 ) {
     let collection_exists = collection_list
         .read()
