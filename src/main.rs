@@ -8,6 +8,7 @@ use std::{
 
 use clap::Parser;
 use osu_db::CollectionList;
+use sanitise_file_name::sanitise;
 use tokio::sync::{RwLock, Semaphore};
 use tracing::{error, info};
 use utilities::{
@@ -109,14 +110,16 @@ async fn main() {
 
             match mirror.get_file(beatmapset.id).await {
                 Ok(bytes) => {
-                    let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, beatmapset.id);
-                    tokio::fs::write(file_path, bytes).await.unwrap();
-
                     let beatmapset_entity = &remote_collection_beatmaps
                         .beatmapsets
                         .iter()
                         .find(|s| s.id == beatmapset.id)
                         .unwrap();
+
+                    let file_name = format!("{} {} - {}", beatmapset.id, beatmapset_entity.artist, beatmapset_entity.title);
+                    let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, sanitise(file_name.as_str()));
+
+                    tokio::fs::write(file_path, bytes).await.unwrap();
 
                     for beatmap in beatmapset.beatmaps {
                         add_to_collection(
