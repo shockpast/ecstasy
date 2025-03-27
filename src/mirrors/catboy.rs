@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use reqwest::Error;
 use serde::Deserialize;
 
@@ -7,7 +6,7 @@ use super::Mirror;
 #[derive(Deserialize)]
 pub struct Catboy;
 
-#[async_trait]
+#[async_trait::async_trait]
 impl Mirror for Catboy {
     fn get_name(&self) -> &'static str {
         "catboy.best"

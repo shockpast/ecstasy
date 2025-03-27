@@ -1,6 +1,3 @@
-// direct.rs -
-
-use async_trait::async_trait;
 use reqwest::Error;
 use serde::Deserialize;
 
@@ -9,7 +6,7 @@ use super::Mirror;
 #[derive(Deserialize)]
 pub struct Nerinyan;
 
-#[async_trait]
+#[async_trait::async_trait]
 impl Mirror for Nerinyan {
     fn get_name(&self) -> &'static str {
         "nerinyan.moe"

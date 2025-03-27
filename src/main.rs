@@ -63,9 +63,7 @@ async fn main() {
         remote_collection_info.beatmap_count
     );
 
-    // parallel download
-    let downloaded = Arc::new(AtomicI32::new(0));
-    let tasks_count = Arc::new(AtomicI32::new(0));
+    let downloaded = Arc::new(AtomicI32::new(1));
     let semaphore = Arc::new(Semaphore::new(CONFIG.user.concurrent_downloads));
 
     for beatmapset in remote_collection_info.beatmapsets {
@@ -81,14 +79,10 @@ async fn main() {
         let mirror = Arc::clone(&mirror);
         let downloaded = Arc::clone(&downloaded);
         let remote_collection_beatmaps = Arc::clone(&remote_collection_beatmaps);
-        let tasks_count = Arc::clone(&tasks_count);
         let semaphore = Arc::clone(&semaphore);
 
         tokio::task::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
-            tasks_count
-                .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_add(1))
-                .expect("Overflow");
 
             if let Ok(contents) = mirror.get_file(beatmapset.id).await {
                 let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, beatmapset.id);
@@ -138,5 +132,4 @@ async fn main() {
     }
 
     std::thread::sleep(Duration::from_secs(999));
-    // std::thread::sleep(dur);
 }

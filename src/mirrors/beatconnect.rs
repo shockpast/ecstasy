@@ -1,6 +1,3 @@
-// direct.rs -
-
-use async_trait::async_trait;
 use reqwest::Error;
 use serde::Deserialize;
 
@@ -9,7 +6,7 @@ use super::Mirror;
 #[derive(Deserialize)]
 pub struct Beatconnect;
 
-#[async_trait]
+#[async_trait::async_trait]
 impl Mirror for Beatconnect {
     fn get_name(&self) -> &'static str {
         "beatconnect.io"

@@ -9,6 +9,8 @@ pub async fn benchmark() {
     let client = reqwest::blocking::Client::new();
 
     // 10mb, 25mb, 50mb (general speedtest)
+    info!("running speedtest (general) for 10MB, 25MB and 50MB.");
+
     let general_speed: Vec<f64> = vec![
         test_download(&client, 10_000_000, cfspeedtest::OutputFormat::None),
         test_download(&client, 25_000_000, cfspeedtest::OutputFormat::None),
@@ -16,6 +18,8 @@ pub async fn benchmark() {
     ];
 
     // 40mb (mirror speedtest)
+    info!("running speedtest (mirror)\n");
+
     let mut file_size: f64 = 0.0;
     let mut mirror_speed: VecDeque<f64> = VecDeque::new();
 
