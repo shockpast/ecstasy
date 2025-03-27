@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use reqwest::Error;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Collection {
   pub id: i32,
@@ -17,31 +17,44 @@ pub struct Collection {
   comments: Vec<String>,
   unsubmitted_beatmap_count: i16,
   unknown_checksums: Vec<String>,
+  pub beatmapsets: Vec<CollectionInfoBeatmapsets>,
   modes: CollectionModes,
   difficulty_spread: HashMap<i32, f64>,
   bpm_spread: HashMap<i32, f64>
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
+pub struct CollectionInfoBeatmapsets {
+  pub id: i32,
+  pub beatmaps: Vec<CollectionInfoBeatmap>
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct CollectionInfoBeatmap {
+  pub id: i32,
+  pub checksum: String
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct CollectionBeatmaps {
   pub beatmaps: Vec<Beatmap>,
   pub beatmapsets: Vec<Beatmapset>
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct CollectionUploader {
   pub id: i32,
   pub username: String,
   pub rank: Option<i32>
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct CollectionDate {
   _seconds: i64,
   _nanoseconds: i64
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct CollectionModes {
   osu: i16,
   taiko: i16,
@@ -49,7 +62,7 @@ struct CollectionModes {
   mania: i16
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum Gamemode {
   Osu,
@@ -58,7 +71,7 @@ enum Gamemode {
   Mania
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum BeatmapStatus {
   Ranked,
@@ -72,7 +85,7 @@ pub enum BeatmapStatus {
   WIP
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Beatmap {
   pub id: i32,
   pub beatmapset_id: i32,
@@ -89,7 +102,7 @@ pub struct Beatmap {
   pub status: BeatmapStatus
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Beatmapset {
   pub id: i32,
   creator: String,
