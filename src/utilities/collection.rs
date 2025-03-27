@@ -4,7 +4,7 @@ use tokio::sync::RwLock;
 
 use crate::collector::Collection;
 
-pub fn format_collection_name(fmt: &String, collection: &Collection) -> String {
+pub fn format_collection_name(fmt: &str, collection: &Collection) -> String {
     fmt.replace("{collection_author}", &collection.uploader.username)
         .replace("{collection_title}", &collection.name)
         .replace("{collection_id}", collection.id.to_string().as_str())
@@ -24,7 +24,7 @@ pub async fn create_collection(
     if collection_exists {
         return;
     }
-    
+
     collection_list
         .write()
         .await
