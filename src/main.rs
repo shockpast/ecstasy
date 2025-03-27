@@ -85,9 +85,11 @@ async fn main() {
         let tasks_count = Arc::clone(&tasks_count);
         let semaphore = Arc::clone(&semaphore);
 
-        tokio::spawn(async move {
+        tokio::task::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
-            tasks_count.fetch_add(1, Ordering::SeqCst);
+            tasks_count
+                .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_add(1))
+                .expect("Overflow");
 
             if let Ok(contents) = mirror.get_file(beatmapset.id).await {
                 let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, beatmapset.id);
@@ -127,8 +129,9 @@ async fn main() {
                     .to_file(CONFIG.osu.collection_path.clone())
                     .unwrap();
 
-                downloaded.fetch_add(1, Ordering::SeqCst);
-                tasks_count.fetch_sub(1, Ordering::SeqCst);
+                downloaded
+                    .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_add(1))
+                    .expect("Overflow");
 
                 drop(_permit);
             }
