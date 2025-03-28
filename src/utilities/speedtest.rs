@@ -1,8 +1,9 @@
 use std::{collections::VecDeque, time::Instant};
 
-use tracing::info;
+use tracing::{debug, info, warn};
 
 use crate::config::MirrorType;
+
 async fn test_download(client: &reqwest::Client, payload_size_bytes: usize) -> f64 {
     let req = client.get(format!(
         "https://speed.cloudflare.com/__down?bytes={}",
@@ -14,9 +15,10 @@ async fn test_download(client: &reqwest::Client, payload_size_bytes: usize) -> f
     let start = Instant::now();
     let _ = resp.bytes().await.unwrap();
     let elapsed = start.elapsed().as_secs_f64();
-    
+
     (payload_size_bytes as f64 * 8.0 / 1_000_000.0) / elapsed
 }
+
 pub async fn benchmark() {
     let client = reqwest::Client::new();
 
@@ -35,13 +37,27 @@ pub async fn benchmark() {
     let mut file_size: f64 = 0.0;
     let mut mirror_speed: VecDeque<f64> = VecDeque::new();
 
-    for mirror_type in MirrorType::ALL {
+    for (index, mirror_type) in MirrorType::ALL.iter().enumerate() {
         let mirror = mirror_type.get_mirror();
+        if ["osuokayu.moe"]
+            .iter()
+            .any(|name| *name == mirror.get_name())
+        {
+            warn!("{} skipped (probably has some issues)\n", mirror.get_name());
+            continue;
+        }
 
         let start = Instant::now();
 
         let file = mirror.get_file(1030499).await.unwrap();
         file_size = file.len() as f64;
+
+        debug!("{} - {}", mirror.get_name(), start.elapsed().as_secs_f64());
+        info!(
+            "{} done, {} to go.",
+            mirror.get_name(),
+            MirrorType::ALL.len() - (index + 1)
+        );
 
         mirror_speed.push_front(start.elapsed().as_secs_f64());
     }
@@ -60,11 +76,16 @@ pub async fn benchmark() {
 
     for mirror_type in MirrorType::ALL {
         let mirror = mirror_type.get_mirror();
+        let mirror_speed = mirror_speed.pop_front();
+
+        if mirror_speed.is_none() {
+            continue;
+        }
 
         info!(
             "{} = {:.2}Mb/s",
             mirror.get_name(),
-            (file_size * 8.0 / 1_000_000.0) / mirror_speed.pop_front().unwrap()
+            (file_size * 8.0 / 1_000_000.0) / mirror_speed.unwrap()
         );
     }
 }

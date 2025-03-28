@@ -4,6 +4,7 @@ use serde::{Deserialize, de};
 
 use crate::mirrors::{
     Mirror, beatconnect::Beatconnect, catboy::Catboy, nerinyan::Nerinyan, osudirect::OsuDirect,
+    sayobot::Sayobot,
 };
 
 pub enum MirrorType {
@@ -11,14 +12,16 @@ pub enum MirrorType {
     OsuDirect(OsuDirect),
     Nerinyan(Nerinyan),
     Beatconnect(Beatconnect),
+    Sayobot(Sayobot),
 }
 
 impl MirrorType {
-    pub const ALL: [MirrorType; 4] = [
+    pub const ALL: [MirrorType; 5] = [
         MirrorType::Catboy(Catboy),
         MirrorType::OsuDirect(OsuDirect),
         MirrorType::Nerinyan(Nerinyan),
         MirrorType::Beatconnect(Beatconnect),
+        MirrorType::Sayobot(Sayobot),
     ];
 
     #[allow(clippy::redundant_allocation)]
@@ -28,6 +31,7 @@ impl MirrorType {
             MirrorType::OsuDirect(m) => Box::new(m),
             MirrorType::Nerinyan(m) => Box::new(m),
             MirrorType::Beatconnect(m) => Box::new(m),
+            MirrorType::Sayobot(m) => Box::new(m),
         }
     }
 }
@@ -43,9 +47,10 @@ impl<'de> Deserialize<'de> for MirrorType {
             "osudirect" => Ok(MirrorType::OsuDirect(OsuDirect)),
             "nerinyan" => Ok(MirrorType::Nerinyan(Nerinyan)),
             "beatconnect" => Ok(MirrorType::Beatconnect(Beatconnect)),
+            "sayobot" => Ok(MirrorType::Sayobot(Sayobot)),
             _ => Err(de::Error::unknown_variant(
                 &s,
-                &["catboy", "osudirect", "nerinyan", "beatconnect"],
+                &["catboy", "osudirect", "nerinyan", "beatconnect", "sayobot"],
             )),
         }
     }

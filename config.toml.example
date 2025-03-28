@@ -1,6 +1,6 @@
 [user]
 # tip: run "ecstasy.exe -s" to measure download speeds from all available mirrors
-# available: catboy, osudirect, nerinyan, beatconnect
+# available: catboy, osudirect, nerinyan, beatconnect, sayobot
 mirror_type = "catboy"
 
 # format in which collection name will be formatted

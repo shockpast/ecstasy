@@ -2,6 +2,7 @@ pub mod beatconnect;
 pub mod catboy;
 pub mod nerinyan;
 pub mod osudirect;
+pub mod sayobot;
 
 #[async_trait::async_trait]
 pub trait Mirror {

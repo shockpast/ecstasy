@@ -116,8 +116,15 @@ async fn main() {
                         .find(|s| s.id == beatmapset.id)
                         .unwrap();
 
-                    let file_name = format!("{} {} - {}", beatmapset.id, beatmapset_entity.artist, beatmapset_entity.title);
-                    let file_path = format!("{}/{}.osz", CONFIG.osu.songs_path, sanitise(file_name.as_str()));
+                    let file_name = format!(
+                        "{} {} - {}",
+                        beatmapset.id, beatmapset_entity.artist, beatmapset_entity.title
+                    );
+                    let file_path = format!(
+                        "{}/{}.osz",
+                        CONFIG.osu.songs_path,
+                        sanitise(file_name.as_str())
+                    );
 
                     tokio::fs::write(file_path, bytes).await.unwrap();
 
