@@ -1,20 +1,32 @@
 use std::{collections::VecDeque, time::Instant};
 
-use cfspeedtest::speedtest::test_download;
 use tracing::info;
 
 use crate::config::MirrorType;
+async fn test_download(client: &reqwest::Client, payload_size_bytes: usize) -> f64 {
+    let req = client.get(format!(
+        "https://speed.cloudflare.com/__down?bytes={}",
+        payload_size_bytes
+    ));
 
+    let resp = req.send().await.unwrap();
+
+    let start = Instant::now();
+    let _ = resp.bytes().await.unwrap();
+    let elapsed = start.elapsed().as_secs_f64();
+    
+    (payload_size_bytes as f64 * 8.0 / 1_000_000.0) / elapsed
+}
 pub async fn benchmark() {
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::Client::new();
 
     // 10mb, 25mb, 50mb (general speedtest)
     info!("running speedtest (general) for 10MB, 25MB and 50MB.");
 
     let general_speed: Vec<f64> = vec![
-        test_download(&client, 10_000_000, cfspeedtest::OutputFormat::None),
-        test_download(&client, 25_000_000, cfspeedtest::OutputFormat::None),
-        test_download(&client, 50_000_000, cfspeedtest::OutputFormat::None),
+        test_download(&client, 10_000_000).await,
+        test_download(&client, 25_000_000).await,
+        test_download(&client, 50_000_000).await,
     ];
 
     // 40mb (mirror speedtest)
