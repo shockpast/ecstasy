@@ -2,23 +2,28 @@ use serde::Deserialize;
 
 use super::Mirror;
 
+#[derive(Debug, Clone, Deserialize)]
+struct ErrorResponse {
+    message: String,
+}
+
 #[derive(Deserialize)]
-pub struct Beatconnect;
+pub struct Sayobot;
 
 #[async_trait::async_trait]
-impl Mirror for Beatconnect {
+impl Mirror for Sayobot {
     fn get_name(&self) -> &'static str {
-        "beatconnect.io"
+        "sayobot.cn"
     }
 
     fn get_base_url(&self) -> &'static str {
-        "https://beatconnect.io/b"
+        "https://txy1.sayobot.cn/beatmaps/download/full"
     }
 
     async fn get_file(&self, id: i32) -> Result<Vec<u8>, String> {
         let client = reqwest::Client::new();
         let response = client
-            .get(format!("{}/{}", self.get_base_url(), id))
+            .get(format!("{}/{}?server=auto", self.get_base_url(), id))
             .header("User-Agent", "shockpast/osu-collector-cli: 1.0.0")
             .send()
             .await
@@ -34,8 +39,8 @@ impl Mirror for Beatconnect {
         let bytes = response.bytes().await.map_err(|e| e.to_string())?;
 
         if content_type.contains("application/json") {
-            if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&bytes) {
-                return Err(json.to_string());
+            if let Ok(json) = serde_json::from_slice::<ErrorResponse>(&bytes) {
+                return Err(json.message);
             }
         }
 

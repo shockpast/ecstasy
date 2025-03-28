@@ -1,6 +1,6 @@
 [user]
 # tip: run "ecstasy.exe -s" to measure download speeds from all available mirrors
-# available: catboy, osudirect, nerinyan, beatconnect
+# available: catboy, osudirect, nerinyan, beatconnect, sayobot
 mirror_type = "catboy"
 
 # format in which collection name will be formatted
@@ -23,6 +23,3 @@ songs_path = ""
 
 # it should be an absolute path, e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\collection.db
 collection_path = ""
-
-# required to download only new maps, and don't do already owned
-osu_path = ""

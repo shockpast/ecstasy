@@ -5,8 +5,8 @@
 
 ## Installation
 
-1. download the latest artifact or compile it yourself
-2. setup the `config.toml`
+1. download the latest release *(or compile yourself)*
+2. setup the `config.toml` (`config.toml.example`, you'll need to rename it)
 3. launch `ecstasy.exe`
 
 ## Building
@@ -31,7 +31,4 @@ i686-pc-windows-msvc # windows 32-bit
 
 ## Todo
 
-```
-- osu!lazer support
-- workflow for automatic build (artifacts)
-```
+- [ ] osu!lazer support
