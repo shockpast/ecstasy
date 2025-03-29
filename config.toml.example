@@ -16,10 +16,3 @@ concurrent_downloads = 4
 [collector]
 # https://osucollector.com/collections/<COLLECTION_ID>/<COLLECTION_NAME>
 id = 0
-
-[osu]
-# e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\Songs
-songs_path = ""
-
-# it should be an absolute path, e.g. C:\\Users\\admin\\AppData\\Local\\osu!\\collection.db
-collection_path = ""
