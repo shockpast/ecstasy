@@ -1,6 +1,6 @@
 use std::{collections::VecDeque, time::Instant};
 
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 use crate::config::MirrorType;
 
@@ -39,17 +39,14 @@ pub async fn benchmark() {
 
     for (index, mirror_type) in MirrorType::ALL.iter().enumerate() {
         let mirror = mirror_type.get_mirror();
-        if ["osuokayu.moe"]
-            .iter()
-            .any(|name| *name == mirror.get_name())
-        {
-            warn!("{} skipped (probably has some issues)\n", mirror.get_name());
-            continue;
-        }
 
         let start = Instant::now();
 
         let file = mirror.get_file(1030499).await.unwrap();
+        if file.len() as f64 <= 0.0 {
+            continue;
+        }
+
         file_size = file.len() as f64;
 
         debug!("{} - {}", mirror.get_name(), start.elapsed().as_secs_f64());

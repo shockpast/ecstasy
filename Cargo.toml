@@ -11,6 +11,7 @@ serde_json = "1.0.140"
 toml = "0.8.20"
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
+winreg = "0.55.0"
 
 [dependencies.osu-db]
 git = "https://github.com/rushiiMachine/osu-db"

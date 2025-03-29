@@ -14,3 +14,35 @@ pub async fn find_beatmap(path: &str, id: i32) -> Option<bool> {
 
     None
 }
+
+#[cfg(target_os = "windows")]
+pub fn find_game() -> Result<String, std::io::Error> {
+    let hkcu = winreg::RegKey::predef(winreg::enums::HKEY_USERS);
+
+    let keys = hkcu
+        .enum_keys()
+        .map(|k| k.unwrap())
+        .filter(|k| k.ends_with("_Classes"))
+        .collect::<Vec<_>>();
+    let value: String = hkcu
+        .open_subkey(format!(
+            "{}\\osustable.File.osz\\Shell\\Open\\Command",
+            keys.first().unwrap()
+        ))?
+        .get_value("")?;
+
+    let path = value
+        .split(" ")
+        .collect::<Vec<_>>()
+        .first()
+        .unwrap()
+        .replace("\"", "")
+        .replace("\\osu!.exe", "");
+
+    Ok(path)
+}
+
+#[cfg(target_os = "linux")]
+pub async fn find_game() -> Option<&'static str> {
+    todo!("Linux is currently not supported, since we don't have any experience with it.")
+}

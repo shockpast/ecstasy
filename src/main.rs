@@ -11,6 +11,7 @@ use osu_db::CollectionList;
 use sanitise_file_name::sanitise;
 use tokio::sync::{RwLock, Semaphore};
 use tracing::{error, info};
+
 use utilities::{
     collection::{add_to_collection, create_collection, format_collection_name},
     osu::find_beatmap,

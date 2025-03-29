@@ -2,9 +2,12 @@ use std::fs;
 
 use serde::{Deserialize, de};
 
-use crate::mirrors::{
-    Mirror, beatconnect::Beatconnect, catboy::Catboy, nerinyan::Nerinyan, osudirect::OsuDirect,
-    sayobot::Sayobot,
+use crate::{
+    mirrors::{
+        Mirror, beatconnect::Beatconnect, catboy::Catboy, nerinyan::Nerinyan, osudirect::OsuDirect,
+        sayobot::Sayobot,
+    },
+    utilities::osu,
 };
 
 pub enum MirrorType {
@@ -69,7 +72,7 @@ pub struct CollectorConfig {
     pub id: i32,
 }
 
-#[derive(Deserialize)]
+#[derive(Default, Deserialize)]
 pub struct OsuConfig {
     pub songs_path: String,
     pub collection_path: String,
@@ -79,10 +82,17 @@ pub struct OsuConfig {
 pub struct Config {
     pub user: UserConfig,
     pub collector: CollectorConfig,
+    #[serde(skip_deserializing)]
     pub osu: OsuConfig,
 }
 
 pub fn init() -> Config {
     let contents = fs::read_to_string("config.toml").expect("config.toml doesn't exist!");
-    toml::from_str::<Config>(&contents).unwrap()
+    let mut config = toml::from_str::<Config>(&contents).unwrap();
+
+    let osu_path = osu::find_game().unwrap();
+    config.osu.songs_path = format!("{}\\Songs", osu_path);
+    config.osu.collection_path = format!("{}\\collection.db", osu_path);
+
+    config
 }
