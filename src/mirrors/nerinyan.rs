@@ -1,7 +1,6 @@
-use reqwest::StatusCode;
 use serde::Deserialize;
 
-use super::Mirror;
+use super::{Mirror, Ratelimiter};
 
 #[derive(Deserialize)]
 pub struct Nerinyan;
@@ -16,14 +15,18 @@ impl Mirror for Nerinyan {
         "https://api.nerinyan.moe/d"
     }
 
-    async fn get_file(&self, id: i32) -> Result<Vec<u8>, String> {
+    async fn get_file(&self, id: i32, rate_limit: &Ratelimiter) -> Result<Vec<u8>, String> {
+        rate_limit.wait_if_needed().await;
+
         let client = reqwest::Client::new();
         let response = client
             .get(format!("{}/{}", self.get_base_url(), id))
-            .header("User-Agent", "shockpast/osu-collector-cli: 1.0.0")
+            .header("User-Agent", "shockpast/ecstasy: 1.1.2")
             .send()
             .await
             .unwrap();
+
+        rate_limit.update_rate_limit(response.headers()).await;
 
         let content_type = response
             .headers()
@@ -31,27 +34,8 @@ impl Mirror for Nerinyan {
             .and_then(|v| v.to_str().ok())
             .map(|s| s.to_string())
             .unwrap_or_default();
-        let status_code = response.status();
 
         let bytes = response.bytes().await.map_err(|e| e.to_string())?;
-
-        if status_code.is_client_error() {
-            match status_code {
-                StatusCode::FORBIDDEN => {
-                    return Err(format!("{} possibly banned us.", self.get_name()));
-                }
-                _ => todo!(),
-            };
-        }
-
-        if status_code.is_server_error() {
-            match status_code {
-                StatusCode::BAD_GATEWAY => {
-                    panic!("{} is down, consider using other mirror.", self.get_name());
-                }
-                _ => todo!(),
-            };
-        }
 
         if content_type.contains("application/json") {
             if let Ok(json) = serde_json::from_slice::<serde_json::Value>(&bytes) {

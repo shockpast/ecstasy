@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::Mirror;
+use super::{Mirror, Ratelimiter};
 
 #[derive(Debug, Clone, Deserialize)]
 struct ErrorResponse {
@@ -20,14 +20,18 @@ impl Mirror for Catboy {
         "https://catboy.best/d"
     }
 
-    async fn get_file(&self, id: i32) -> Result<Vec<u8>, String> {
+    async fn get_file(&self, id: i32, rate_limit: &Ratelimiter) -> Result<Vec<u8>, String> {
+        rate_limit.wait_if_needed().await;
+
         let client = reqwest::Client::new();
         let response = client
             .get(format!("{}/{}", self.get_base_url(), id))
-            .header("User-Agent", "shockpast/osu-collector-cli: 1.0.0")
+            .header("User-Agent", "shockpast/ecstasy: 1.1.2")
             .send()
             .await
             .unwrap();
+
+        rate_limit.update_rate_limit(response.headers()).await;
 
         let content_type = response
             .headers()

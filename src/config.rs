@@ -90,6 +90,10 @@ pub fn init() -> Config {
     let contents = fs::read_to_string("config.toml").expect("config.toml doesn't exist!");
     let mut config = toml::from_str::<Config>(&contents).unwrap();
 
+    if config.user.concurrent_downloads > 6 {
+        panic!("It's highly recommended, that you won't use more than 6 \"threads\" to download maps, otherwise you will get banned from mirrors.");
+    }
+
     let osu_path = osu::find_game().unwrap();
     config.osu.songs_path = format!("{}\\Songs", osu_path);
     config.osu.collection_path = format!("{}\\collection.db", osu_path);

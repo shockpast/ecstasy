@@ -34,12 +34,6 @@ pub struct CollectionUploader {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-struct CollectionDate {}
-
-#[derive(Clone, Debug, Deserialize)]
-struct CollectionModes {}
-
-#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum Gamemode {
     Osu,

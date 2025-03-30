@@ -7,6 +7,7 @@ use std::{
 };
 
 use clap::Parser;
+use mirrors::Ratelimiter;
 use osu_db::CollectionList;
 use sanitise_file_name::sanitise;
 use tokio::sync::{RwLock, Semaphore};
@@ -69,6 +70,7 @@ async fn main() {
     );
 
     let downloaded = Arc::new(AtomicI32::new(1));
+    let rate_limiter = Arc::new(Ratelimiter::default());
     let semaphore = Arc::new(Semaphore::new(CONFIG.user.concurrent_downloads));
 
     for beatmapset in remote_collection_info.beatmapsets {
@@ -105,11 +107,13 @@ async fn main() {
         let downloaded = Arc::clone(&downloaded);
         let remote_collection_beatmaps = Arc::clone(&remote_collection_beatmaps);
         let semaphore = Arc::clone(&semaphore);
+        let rate_limiter = Arc::clone(&rate_limiter);
 
         tokio::task::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
+            let _rate_limiter: &Ratelimiter = &rate_limiter;
 
-            match mirror.get_file(beatmapset.id).await {
+            match mirror.get_file(beatmapset.id, _rate_limiter).await {
                 Ok(bytes) => {
                     let beatmapset_entity = &remote_collection_beatmaps
                         .beatmapsets
@@ -142,6 +146,8 @@ async fn main() {
                             .iter()
                             .find(|b| b.checksum == beatmap.checksum)
                             .unwrap();
+
+                        info!("requests left: {}", _rate_limiter.info.read().await.remaining);
 
                         info!(
                             "({}/{}) {} - {} [{}]",

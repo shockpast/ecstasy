@@ -2,7 +2,7 @@ use std::{collections::VecDeque, time::Instant};
 
 use tracing::{debug, info};
 
-use crate::config::MirrorType;
+use crate::{config::MirrorType, mirrors::Ratelimiter};
 
 async fn test_download(client: &reqwest::Client, payload_size_bytes: usize) -> f64 {
     let req = client.get(format!(
@@ -39,10 +39,11 @@ pub async fn benchmark() {
 
     for (index, mirror_type) in MirrorType::ALL.iter().enumerate() {
         let mirror = mirror_type.get_mirror();
+        let rate_limiter = Ratelimiter::default();
 
         let start = Instant::now();
 
-        let file = mirror.get_file(1030499).await.unwrap();
+        let file = mirror.get_file(1030499, &rate_limiter).await.unwrap();
         if file.len() as f64 <= 0.0 {
             continue;
         }
