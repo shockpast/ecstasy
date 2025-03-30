@@ -44,6 +44,7 @@ pub fn find_game() -> Result<String, std::io::Error> {
 
 #[cfg(target_os = "linux")]
 pub async fn find_game() -> Result<String, std::io::Error> {
-    let path = std::env::var("OSU_FOLDER").expect("'OSU_FOLDER' export is not defined (e.g.: '$HOME\\osu')");
+    let path = std::env::var("OSU_FOLDER")
+        .expect("'OSU_FOLDER' export is not defined (e.g.: '$HOME\\osu')");
     Ok(path)
 }

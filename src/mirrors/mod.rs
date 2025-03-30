@@ -1,8 +1,11 @@
-use std::{sync::Arc, time::{Duration, Instant}};
+use std::{
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use reqwest::header::HeaderMap;
 use tokio::sync::RwLock;
-use tracing::warn;
+use tracing::info;
 
 pub mod beatconnect;
 pub mod catboy;
@@ -26,7 +29,14 @@ impl Ratelimiter {
         if let Some(reset_at) = self.info.read().await.reset_at {
             if reset_at > Instant::now() {
                 let wait_duration = reset_at.duration_since(Instant::now());
-                warn!("You've hit an rate-limit, chill out, and wait for 60 seconds.");
+
+                info!(
+                    "You've hit an rate-limit, chill out, and wait until you can send requests again."
+                );
+                info!(
+                    "{} seconds left, until rate-limit will reset.",
+                    wait_duration.as_secs() % 60
+                );
 
                 tokio::time::sleep(wait_duration).await;
             }
@@ -34,12 +44,33 @@ impl Ratelimiter {
     }
 
     async fn update_rate_limit(&self, headers: &HeaderMap) {
-        if let Some(remaining) = headers.get("x-ratelimit-remaining").and_then(|v| v.to_str().ok()) {
+        if let Some(origin) = headers.get("content-origin").and_then(|v| v.to_str().ok()) {
+            if origin == "s3" && self.info.read().await.remaining <= 5 {
+                let now = Instant::now();
+                let seconds_in_next_minute = 60 - now.elapsed().as_secs() % 60;
+                let now = now + Duration::from_secs(seconds_in_next_minute);
+
+                self.info.write().await.remaining = 0;
+                self.info.write().await.reset_at = Some(now);
+
+                return;
+            }
+        }
+
+        if let Some(remaining) = headers
+            .get("x-ratelimit-remaining")
+            .and_then(|v| v.to_str().ok())
+        {
             self.info.write().await.remaining = remaining.parse().unwrap_or(0);
         }
-        
+
         if self.info.read().await.remaining <= 1 {
-            self.info.write().await.reset_at = Some(Instant::now() + Duration::from_secs(70));
+            let now = Instant::now();
+            let seconds_in_next_minute = 60 - now.elapsed().as_secs() % 60;
+            let now = now + Duration::from_secs(seconds_in_next_minute);
+
+            self.info.write().await.remaining = 0;
+            self.info.write().await.reset_at = Some(now);
         }
     }
 }

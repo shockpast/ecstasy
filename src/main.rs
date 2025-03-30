@@ -70,6 +70,8 @@ async fn main() {
     );
 
     let downloaded = Arc::new(AtomicI32::new(1));
+    let beatmap_count = Arc::new(AtomicI32::new(remote_collection_info.beatmap_count as i32));
+
     let rate_limiter = Arc::new(Ratelimiter::default());
     let semaphore = Arc::new(Semaphore::new(CONFIG.user.concurrent_downloads));
 
@@ -108,6 +110,7 @@ async fn main() {
         let remote_collection_beatmaps = Arc::clone(&remote_collection_beatmaps);
         let semaphore = Arc::clone(&semaphore);
         let rate_limiter = Arc::clone(&rate_limiter);
+        let beatmap_count = Arc::clone(&beatmap_count);
 
         tokio::task::spawn(async move {
             let _permit = semaphore.acquire().await.unwrap();
@@ -147,12 +150,10 @@ async fn main() {
                             .find(|b| b.checksum == beatmap.checksum)
                             .unwrap();
 
-                        info!("requests left: {}", _rate_limiter.info.read().await.remaining);
-
                         info!(
                             "({}/{}) {} - {} [{}]",
                             downloaded.load(Ordering::SeqCst),
-                            remote_collection_info.beatmap_count,
+                            beatmap_count.load(Ordering::SeqCst),
                             beatmapset_entity.artist,
                             beatmapset_entity.title,
                             beatmap_entity.version
@@ -173,12 +174,18 @@ async fn main() {
                 }
                 Err(error) => {
                     error!("{} ({}): {}", mirror.get_name(), beatmapset.id, error);
+
+                    beatmap_count
+                        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| x.checked_sub(1))
+                        .expect("Overflow");
+
+                    drop(_permit);
                 }
             };
         });
     }
 
-    while downloaded.load(Ordering::SeqCst) < remote_collection_info.beatmap_count as i32 {
+    while downloaded.load(Ordering::SeqCst) < beatmap_count.load(Ordering::SeqCst) {
         std::thread::sleep(Duration::from_secs(1));
     }
 

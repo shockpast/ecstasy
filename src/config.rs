@@ -91,7 +91,9 @@ pub fn init() -> Config {
     let mut config = toml::from_str::<Config>(&contents).unwrap();
 
     if config.user.concurrent_downloads > 6 {
-        panic!("It's highly recommended, that you won't use more than 6 \"threads\" to download maps, otherwise you will get banned from mirrors.");
+        panic!(
+            "It's highly recommended, that you won't use more than 6 \"threads\" to download maps, otherwise you will get banned from mirrors."
+        );
     }
 
     let osu_path = osu::find_game().unwrap();
